@@ -93,3 +93,50 @@ var Cat.prototype = Animal();
 
 var cat = new Cat("cat");
 cat.getName();
+
+
+/*
+  IIEF:立即执行函数表达式
+*/
+//1.IIEF方式1，推荐
+(function(){
+}());
+
+//2.IIEF方式2，不推荐，破坏整体性
+(function(){
+})();
+
+//3.IIEF方法定义
+var add;
+(function(a, b){
+  add = function(){
+    return a+b;
+  };
+}(1,2));
+
+add();
+
+//4.将IIEF赋给变量
+var fn = (function(a, b){
+  return {
+    add: function(){
+      return a+b;
+    },
+    subtract: function(){
+      return (a>b)? (a-b) : (b-a);
+    },
+    multiply: function(){
+      return a*b;
+    },
+    divide: function(){
+      try{
+        if(b==0){
+          throw new error(a/b);
+        }
+        return a/b;
+      }catch(e){
+        alert("b is 0");
+      }
+    }
+  }
+}(1, 3));
