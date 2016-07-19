@@ -140,3 +140,112 @@ var fn = (function(a, b){
     }
   }
 }(1, 3));
+
+/*
+建议58：灵活使用Arguments
+1.Arguments是伪数组，可以使用Array.prototype.slice.call将其转化为真正的数组
+2.使用Arguments可以随时修改实参，实参个数少于形参的个数时，多余的形参为undefined；多的时候，多余的实参被删除
+3.比较实参和形参
+*/
+
+//1
+function sort(){
+  var arr = Array.prototype.slice.call(arguments);
+  return arr.sort();
+}
+sort(2,3,1);
+
+//2
+function F(a,b){
+  console.log("实参:");
+  for(var i=0,len=arguments.length;i<len;i++){
+    console.log(arguments[i]);
+  }
+  console.log("形参:");
+  console.log(a);
+  console.log(b);
+}
+F(1,2,3);
+/*
+实参:
+1
+2
+3
+形参:
+1
+2
+*/
+
+F(1)
+/*
+实参:
+1
+形参:
+1
+undefined
+*/
+
+//3
+function F(a,b){
+  var sArgs = arguments.length;
+  var xArgs = arguments.callee.length;
+  console.log(sArgs === xArgs);
+}
+F(1,2); //true
+F(1,2,3); //false
+F(1); //false
+
+/*
+建议60：比较函数调用模式下的作用域
+四种调用模式：
+1.方法调用模式
+2.函数调用模式
+3.构造器调用模式
+4.apply调用模式
+*/
+
+//1.方法调用模式:this被绑定到调用对象上
+var student = {
+  name: "tom",
+  print: function(){
+    return this.name;
+  }
+};
+student.print();
+
+//2.函数调用模式:this绑定到全局作用域
+function Student(name){
+  this.name = name;
+  this.getName = function(){
+    return this.name;
+  };
+}
+Student("tom");
+window.getName(); //"tom"
+
+/*
+3.构造器调用模式:如果在一个函数的前面使用new进行调用，
+将创建一个隐式链接到该函数的prototype的实例对象，同时this会被绑定到该实例对象上
+*/
+function Animal(name){
+  this.name = name;
+}
+Animal.prototype.get = function(){
+  return this.name;
+};
+
+var cat = new Animal("cat");
+cat.get();
+
+//4.apply调用模式:第一个参数会重置作用域
+function F(str){
+  this.str = str;
+}
+F.prototype.get = function(){
+  return this.str;
+};
+
+var obj = {
+  str: "obj"
+};
+F.prototype.get.apply(obj); //"obj"
