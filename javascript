@@ -142,6 +142,38 @@ var fn = (function(a, b){
 }(1, 3));
 
 /*
+  建议6：正确处理Javascript的特殊值
+  2.正确使用null和undefined
+  以下情况返回undefined：
+  (1)从一个对象中获取某个属性，如果该对象或者原型链中没有该属性，返回undefined；
+  (2)没有显示return，或者仅仅使用return作为返回值，函数的返回值是undefined；
+  (3)javascript的函数生命的形参，传递的实参的数目小于形参，这个没有对应实参的形参为undefined；
+  (4)javascript中声明但是没有赋值的变量,返回undefined。
+*/
+function F(a,b){
+  var c;
+  console.log(c); //undefined,符合(4)
+  console.log(b); //undefined,符合(3)
+  console.log(e); //报错，调用没有声明的参数
+  return;
+}
+F(1); //undefined,F函数只有return，F的返回值是undefined
+
+/*
+  建议14：不要滥用eval，因为eval必须运行编译器降低了性能，此外向被求值的文本赋予了太多权限导致安全问题
+*/
+
+/*
+  建议20：不要使用new,因为忘记使用new得到的是一个普通的函数调用，并且this被绑定到全局对象
+*/
+function F(name){
+  this.name = name;
+}
+F("function");
+window.name; //"function"
+name; // "function"
+
+/*
 建议58：灵活使用Arguments
 1.Arguments是伪数组，可以使用Array.prototype.slice.call将其转化为真正的数组
 2.使用Arguments可以随时修改实参，实参个数少于形参的个数时，多余的形参为undefined；多的时候，多余的实参被删除
