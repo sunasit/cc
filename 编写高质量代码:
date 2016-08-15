@@ -1,1 +1,86 @@
+/*
+建议86：使用面向对象模拟继承
+所有函数在创建的时候就自动创建和初始化好prototype属性，这个初始化好的prototype属性指向一个只包含一个constructor属性的对象
+*/
 
+//eg1:
+var Person = function(){};
+Person.constructor; //Function()
+Person.prototype; //Object{}
+
+//eg2:将一些共有的属性和方法定义在prototype对象中，当创建实例时，多个实例公用同一个prototype对象，大大减少了对内存的占用量
+function Animal(type){
+  this.type = type;
+}
+
+Animal.prototype.getType = function(){
+  return this.type;
+}
+
+var cat = new Animal("Mammalia");
+cat.getType();
+
+/*
+建议88：this是动态指针，不是静态引用
+this是动态指针，js中类似的有三种：
+callee，始终指向参数所属的函数
+constructor始终指向创建该对象的构造函数
+this,参见eg3
+*/
+
+//eg1:打印函数自身
+function fn(){
+  console.log(arguments.callee);  
+}
+fn(1)
+
+/*eg2:判断实参与形参长度是否相等
+  arguments.callee:形参
+  arguments:实参
+*/
+function calleeEqual(a,b){
+  return arguments.callee.length == arguments.length;
+}
+calleeEqual(1,2); //true
+calleeEqual(1,2,3); //false
+
+var obj = new Object();
+obj.constructor;
+
+/*
+  eg3-1:js函数可以在多个地方被引用，而且这种引用是在执行时确定的。
+        内部函数的this指向全局变量
+*/
+var name = "global name";
+var obj = {
+  name: "name",
+  fn: function(){
+    console.log(this.name); //name
+    var self = this;
+    function inner(){
+      console.log(this.name); //global name
+      console.log(self.name); //name
+    }
+    inner();
+  }
+};
+
+/*
+  eg3-2:js函数可以在多个地方被引用，而且这种引用是在执行时确定的。
+        调用函数有new作为前缀，如果函数返回的不是一个对象，新创建的对象被返回
+*/
+function fnNoReturn(name){
+  this.name = name;
+}
+var fn = fnNoReturn("test");
+fn.name; //test
+
+function fnWithReturn(name){
+  this.name = name;
+  return {
+    anotherName: name
+  };
+}
+
+var fn = new fnWithReturn("cat");
+fn.name; //undefined,fn不是fnWithReturn，而是其中return的对象
