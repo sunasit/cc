@@ -64,6 +64,7 @@ var obj = {
     inner();
   }
 };
+obj.fn();
 
 /*
   eg3-2:js函数可以在多个地方被引用，而且这种引用是在执行时确定的。
@@ -84,3 +85,309 @@ function fnWithReturn(name){
 
 var fn = new fnWithReturn("cat");
 fn.name; //undefined,fn不是fnWithReturn，而是其中return的对象
+
+/*
+  eg3-3:在一个对象中引用另一个对象的方法时，this变化
+*/
+var name = "window name";
+var o = {
+  name: "o",
+  f : function(){
+    return this;
+  }
+};
+
+var o1 = {
+  name: "o1",
+  f: function(){
+    return o.f;
+  }
+};
+
+var o2 = {
+  name: "o2",
+  f: function(){
+    return o.f();
+  }
+};
+
+var a = o1.f()(); //o1.f(),o1的f中的this是o1，这个符合对象.函数时，函数中的this指向此对象；继续的()，this指向window
+console.log("a.name: " + a.name); //a.name: window name
+
+var b = o2.f(); //等同于o.f(),用“这个符合对象.函数时，函数中的this指向此对象”可解释
+console.log("b.name " + b.name); //b.name: o
+
+/*
+  eg3-4:this指向全局对象
+*/
+function f(){
+  this.name = "global name";
+}
+
+f(); //在全局对象上调用函数f，给window的name变量赋值
+name;
+
+/*
+  建议91：推荐使用构造函数原型模式定义类
+  添加到构造函数原型上的属性和方法，被所有实例共享，当使用new运算符实例化对象时，所有对象都拥有原型对象中定义的成员
+*/
+
+/*
+  eg1-1:原型在构造函数之后
+  问题：
+  1.所有实例的属性都是一致的，无法在实例化的时候给构造函数传值
+  2.如果传递给构造函数的是复杂类型，任何一个实例对象改变其，对其他的实例对象都会产生影响
+*/
+function Person(){}
+Person.prototype.name = "jerry";
+Person.prototype.age = "10";
+Person.prototype.family = {
+  "father": "Jerry",
+  "mather": "Lucy"
+};
+Person.prototype.getInfor = function(){
+  console.log("name: " + this.name + ", age: " + this.age);
+};
+
+var p1 = new Person();
+p1.getInfor(); //name: jerry, age: 10
+p1.family = {
+  "father": "Jerry",
+  "mather": "Lucy",
+  "sister": "snoopy"
+};
+
+var p2 = new Person();
+p2.getInfor(); //name: jerry, age: 10
+p2.family; 
+
+//上面例子的补充说明
+function Person(){} 
+Person.prototype={ 
+  constructor:Person, 
+  name:"person", 
+  age:100, 
+  friends:["a","b"], 
+  getName:function(){ 
+    return this.name; 
+  } 
+}; 
+
+var p1 = new Person();
+var p2 = new Person();
+p1.name; //"person"
+p2.name; //"person"
+
+//修改基本类型的值，实际是为实例添加一个实例成员
+p1.name = "tom"; //为p1添加了name实例属性
+p1.name; //"tom"
+p2.name; //"person"
+
+p1.hasOwnProperty("name") //true
+p2.hasOwnProperty("name") //false
+
+p1.friends; //["a","b"]
+p2.friends; //["a","b"]
+
+//修改引用类型的值
+p1.friends.push("c");
+p1.friends; //["a", "b", "c"]
+p2.friends; //["a", "b", "c"]
+
+p1.friends = [1,2];
+p1.friends; //[1,2]
+p2.friends; //["a", "b", "c"]
+
+p1.hasOwnProperty("friends"); //true
+p2.hasOwnProperty("friends"); //false
+
+
+/*
+  eg1-2：构造函数原型式
+  问题：
+  不够完善，面向对象编程要求类的所有成员（属性和方法）都封装在类中
+*/
+function Person(name, age){
+  this.name = name;
+  this.age = age;
+}
+Person.prototype.getInfor = function(){
+  console.log("name: " + this.name + ", age: " + this.age);
+};
+
+var p = new Person("tom", 4);
+p.getInfor();
+
+/*
+  eg1-3:对构造函数原型式的进一步优化，从而产生动态原型模式
+*/
+function Person(name, age){
+  this.name = name;
+  this.age = age;
+  if(typeof Person.isLock == "undefined"){
+    Person.prototype.getInfor = function(){
+      console.log("name: " + this.name + ", age: " + this.age);
+    }
+    Person.isLock = true;
+  }
+}
+
+//建议98：比较使用javascript多态、重载和覆盖
+/*
+  面向对象：继承
+*/
+function A(){}
+A.prototype.get = function(){
+  console.log("A");
+}
+
+function B(){}
+B.prototype = new A();
+
+var b = new B();
+b.get(); //A
+
+/*
+  面向对象：多态
+  类的多态：一个实例可以拥有多种不同的类型
+*/
+function Animal(){//super class
+  Animal.prototype.get = function(){
+    return "Animal";
+  }
+} 
+
+function Dog(){ //Dog class
+  Dog.prototype.get = function(){
+    return "Dog";
+  }
+}
+Dog.prototype = new Animal();
+
+function Cat(){ //Cat class
+  Cat.prototype.get = function(){
+    return "Cat";
+  }
+}
+Cat.prototype = new Animal();
+
+function PolymorphicDemo(x){ this.x = x; }
+PolymorphicDemo.prototype.get = function(){
+  if( this.x instanceof Animal){
+    return this.x.get();
+  }
+}
+
+var dog = new Dog();
+var cat = new Cat();
+var p_dog = new PolymorphicDemo(dog);
+p_dog.get(); //指向Dog
+
+var p_cat = new PolymorphicDemo(cat);
+p_cat.get(); //指向Cat
+/*
+  面向对象：重载
+*/
+function f(a,b){
+  return a+b;
+}
+
+function f(){
+  var sum = 0;
+  for(var i=0, len=arguments.length; i<len; i++){
+    sum+=arguments[i];
+  }
+  return sum;
+}
+
+f(1,2,3)
+
+/*
+  面向对象：覆盖
+*/
+function Polygon(){
+  if(typeof Polygon.isLock == "undefined"){
+    Polygon.prototype.get = function(){
+      console.log("Polygon");
+    }
+  }
+}
+
+function Triangle(){
+  if(typeof Triangle.isLock == "undefined"){
+    Triangle.prototype.get = function(){
+      console.log("Triangle");
+    }
+  }
+}
+
+Triangle.prototype = new Polygon();
+var tri = new Triangle();
+tri.get(); //Triangle
+
+/*
+  面向对象：覆盖优化，调用父类的方法
+*/
+function Polygon(){
+  if(typeof Polygon.isLock == "undefined"){
+    Polygon.prototype.get = function(){
+      console.log("Polygon");
+    }
+  }
+}
+
+function Triangle(){
+  var get = this.get; //note: this is Polygon
+  if(typeof Triangle.isLock == "undefined"){
+    Triangle.prototype.get = function(){
+      get.call(this);
+      console.log("Triangle");
+    }
+  }
+}
+
+Triangle.prototype = new Polygon();
+var tri = new Triangle();
+tri.get(); //Polygon, Triangle
+
+/*
+  建议99：建议主动分装类
+*/
+//eg1,缺点：别人可以随意修改暴露的checkName方法
+var Card = function(name){
+  this.name = name;
+  if(!checkName(name)){
+    throw new Error("name error");
+  }
+};
+Card.prototype.checkName = function(){
+  //...
+}
+
+//eg2：优化，利用js函数级别作用域，将不想被修改的成员放在函数内部
+var Card = function(name){
+  var _name = name;
+  var _checkName = function(){
+    //...  
+  }
+  if(!_checkName(name)){
+    throw new Error("name error");
+  }
+};
+Card.prototype = {
+  //公共方法
+}
+
+//eg3：创建特权函数,利用this返回私有成员
+var Card = function(name){
+  var _name = name;
+  var _checkName = function(){
+    //...  
+  }
+  if(!_checkName(name)){
+    throw new Error("name error");
+  }
+  this.checkName = function(){
+    return _checkName;
+  };
+};
