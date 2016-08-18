@@ -143,7 +143,8 @@ Person.prototype.name = "jerry";
 Person.prototype.age = "10";
 Person.prototype.family = {
   "father": "Jerry",
-  "mather": "Lucy"
+  "mather": "Lucy",
+  "sister": "snoopy"
 };
 Person.prototype.getInfor = function(){
   console.log("name: " + this.name + ", age: " + this.age);
@@ -151,15 +152,11 @@ Person.prototype.getInfor = function(){
 
 var p1 = new Person();
 p1.getInfor(); //name: jerry, age: 10
-p1.family = {
-  "father": "Jerry",
-  "mather": "Lucy",
-  "sister": "snoopy"
-};
+p1.family.sister = "lisa";
 
 var p2 = new Person();
 p2.getInfor(); //name: jerry, age: 10
-p2.family; 
+p2.family; //lisa
 
 //上面例子的补充说明
 function Person(){} 
@@ -186,15 +183,12 @@ p2.name; //"person"
 p1.hasOwnProperty("name") //true
 p2.hasOwnProperty("name") //false
 
-p1.friends; //["a","b"]
-p2.friends; //["a","b"]
-
-//修改引用类型的值
+//修改引用类型的值,所有实例的此属性都受影响
 p1.friends.push("c");
 p1.friends; //["a", "b", "c"]
 p2.friends; //["a", "b", "c"]
 
-p1.friends = [1,2];
+p1.friends = [1,2]; //为p1添加了friends属性
 p1.friends; //[1,2]
 p2.friends; //["a", "b", "c"]
 
@@ -249,7 +243,7 @@ b.get(); //A
 
 /*
   面向对象：多态
-  类的多态：一个实例可以拥有多种不同的类型
+  类的多态：而采用对不同类型进行通用编码的方式，无论是数据结果还是算法。
 */
 function Animal(){//super class
   Animal.prototype.get = function(){
@@ -351,7 +345,7 @@ var tri = new Triangle();
 tri.get(); //Polygon, Triangle
 
 /*
-  建议99：建议主动分装类
+  建议99：建议主动封装类
 */
 //eg1,缺点：别人可以随意修改暴露的checkName方法
 var Card = function(name){
@@ -364,7 +358,7 @@ Card.prototype.checkName = function(){
   //...
 }
 
-//eg2：优化，利用js函数级别作用域，将不想被修改的成员放在函数内部
+//eg2：优化，利用js函数级别作用域，将不想被修改的成员放在函数内部变成私有成员
 var Card = function(name){
   var _name = name;
   var _checkName = function(){
@@ -391,3 +385,17 @@ var Card = function(name){
     return _checkName;
   };
 };
+
+/*
+  建议100：谨慎使用类的静态属性
+*/
+var F = (function(){
+  return function(){
+    this.get2 = function(){
+      return _a;
+    }
+    this.set2 = function(a){
+      _a = a;
+    }
+  }
+}())
